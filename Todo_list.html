@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daftar Tugas</title>
+        <style>
+            /* CSS  */
+            body {
+                background-color: #f7fafc;
+                padding: 1.5rem;
+                font-family: Arial, sans-serif;
+            }
+            header {
+                background-color: #9d207c;
+                color: white;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+                text-align: center;
+            }
+            header h1 {
+                font-size: 2rem;
+                font-weight: bold;
+            }
+            header p {
+                margin-top: 0.5rem;
+            }
+            .main-content {
+                max-width: 600px;
+                margin: 6rem auto 0;
+                background-color: white;
+                padding: 1.5rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .task-list {
+                list-style-type: none;
+                padding: 0;
+            }
+            .task-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #f7fafc;
+                padding: 1rem;
+                margin-bottom: 0.5rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e2e8f0;
+            }
+            .task-text {
+                flex-grow: 1;
+                margin-left: 1rem;
+            }
+            .task-text.completed {
+                text-decoration: line-through;
+                color: #6b7280;
+            }
+            button {
+                background-color: #c82cc3;
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+            button:hover {
+                background-color: #9a0faf;
+            }
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                justify-content: center;
+                align-items: center;
+            }
+            .modal-content {
+                background-color: rgb(199, 199, 199);
+                padding: 1.5rem;
+                border-radius: 1rem;
+                width: 400px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .modal button {
+                margin-left: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+
+        <!-- Header Section -->
+        <header>
+            <h1>Tugas harian</h1>
+            <p>Daftar tugas harian yang harus di selesaikan</p>
+        </header>
+
+        <!-- Main Content Section -->
+        <div class="main-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2>Daftar Tugas</h2>
+                <button onclick="openModal()">Tambah Tugas Baru</button>
+            </div>
+
+            <!-- Daftar Tugas -->
+            <ul id="taskList" class="task-list"></ul>
+        </div>
+
+        <!-- Modal Popup Form -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h3>Tambah Tugas Baru</h3>
+                <input type="text" id="newTask" class="input-task" placeholder="Masukkan tugas baru" />
+                <div>
+                    <button onclick="closeModal()">Tutup</button>
+                    <button onclick="addTask()">Tambah Tugas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Section (Copyright) -->
+        <footer style="text-align: center; padding: 1rem; background-color: #2d3748; color: white; position: fixed; bottom: 0; left: 0; right: 0;">
+            <p>&copy; 2025 zidannur adam putra prabowo.</p>
+        </footer>
+
+        <script>
+            let tasks = [
+                {id: 1, title: 'Belajar PHP', status: 'belum'},
+                {id: 2, title: 'Belajar UI UX', status: 'selesai'},
+            ];
+
+            function displayTasks() {
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.classList.add('task-item');
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = task.status === 'selesai';
+                    checkbox.onclick = function () { updateTaskStatus(task.id, checkbox.checked); };
+
+                    const taskText = document.createElement('span');
+                    taskText.textContent = task.title;
+                    taskText.classList.add('task-text');
+                    if (task.status === 'selesai') {
+                        taskText.classList.add('completed');
+                    }
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Hapus';
+                    deleteButton.onclick = function () { deleteTask(task.id); };
+
+                    li.appendChild(checkbox);
+                    li.appendChild(taskText);
+                    li.appendChild(deleteButton);
+                    taskList.appendChild(li);
+                });
+            }
+
+            function addTask() {
+                const newTaskInput = document.getElementById('newTask');
+                const newTask = newTaskInput.value.trim();
+                
+                if (newTask) {
+                    const newId = tasks.length ? tasks[tasks.length - 1].id + 1 : 1;
+                    tasks.push({id: newId, title: newTask, status: 'belum'});
+                    newTaskInput.value = '';
+                    closeModal();
+                    displayTasks();
+                } else {
+                    alert('Tugas tidak boleh kosong!');
+                }
+            }
+
+            function updateTaskStatus(id, isCompleted) {
+                const task = tasks.find(task => task.id === id);
+                if (task) {
+                    task.status = isCompleted ? 'selesai' : 'belum';
+                    displayTasks();
+                }
+            }
+
+            function deleteTask(id) {
+                if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
+                    tasks = tasks.filter(task => task.id !== id);
+                    displayTasks();
+                }
+            }
+
+            function openModal() {
+                document.getElementById('modal').style.display = 'flex';
+            }
+
+            function closeModal() {
+                document.getElementById('modal').style.display = 'none';
+            }
+
+            displayTasks();
+        </script>
+
+    </body>
+</html>
